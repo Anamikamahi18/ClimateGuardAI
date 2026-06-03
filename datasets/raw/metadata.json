@@ -1,0 +1,10 @@
+{
+    "dataset_name": "IndianWeatherRepository",
+    "version": "1.0",
+    "source": "Indian Weather Repository Dataset",
+    "records": 119398,
+    "features": 42,
+    "country": "India",
+    "status": "raw",
+    "last_verified": "2026-06-03"
+}
