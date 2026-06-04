@@ -22,4 +22,4 @@ print("\nNumerical Statistics")
 print(df.describe())
 
 print("\nCategorical Statistics")
-print(df.describe(include="object"))
+print(df.describe(include="string"))
