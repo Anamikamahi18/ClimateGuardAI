@@ -25,9 +25,6 @@ def calculate_heatwave_index(temperature, humidity):
     return temperature + ((humidity / 100) * temperature)
 
 
-from datetime import datetime
-
-
 def create_datetime_features():
 
     now = datetime.now()
