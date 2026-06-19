@@ -11,3 +11,11 @@ files = [
 
 for file in files:
     print(file, "->", os.path.exists(file))
+
+
+import joblib
+
+mapping = joblib.load("models/rainfall_class_mapping.pkl")
+
+print(type(mapping))
+print(mapping)
