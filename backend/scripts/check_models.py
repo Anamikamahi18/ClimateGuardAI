@@ -1,4 +1,5 @@
 import os
+import joblib
 
 files = [
     "models/xgboost_rainfall_model.pkl",
@@ -12,8 +13,6 @@ files = [
 for file in files:
     print(file, "->", os.path.exists(file))
 
-
-import joblib
 
 mapping = joblib.load("models/rainfall_class_mapping.pkl")
 
