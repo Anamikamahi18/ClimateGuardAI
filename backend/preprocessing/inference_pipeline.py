@@ -63,3 +63,32 @@ def create_season(month):
         season["season_3"] = 1
 
     return season
+
+
+def create_wind_direction_features(wind_degree):
+
+    directions = {
+        "wind_direction_1": 0,
+        "wind_direction_2": 0,
+        "wind_direction_3": 0,
+        "wind_direction_4": 0,
+        "wind_direction_5": 0,
+        "wind_direction_6": 0,
+        "wind_direction_7": 0,
+        "wind_direction_8": 0,
+        "wind_direction_9": 0,
+        "wind_direction_10": 0,
+        "wind_direction_11": 0,
+        "wind_direction_12": 0,
+        "wind_direction_13": 0,
+        "wind_direction_14": 0,
+        "wind_direction_15": 0,
+    }
+
+    sector = int(wind_degree / 24)
+
+    sector = min(sector, 14)
+
+    directions[f"wind_direction_{sector + 1}"] = 1
+
+    return directions
