@@ -421,3 +421,21 @@ def build_heatwave_features(weather_data, air_quality_data, location_data):
     features.update(create_default_day_length())
 
     return features
+
+
+def align_heatwave_features(features):
+
+    import joblib
+    import pandas as pd
+
+    feature_order = joblib.load("models/heatwave_feature_names.pkl")
+
+    df = pd.DataFrame([features])
+
+    for col in feature_order:
+        if col not in df.columns:
+            df[col] = 0
+
+    df = df[feature_order]
+
+    return df
