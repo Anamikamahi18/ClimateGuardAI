@@ -1,4 +1,6 @@
 from datetime import datetime
+import pandas as pd
+import joblib
 
 
 def calculate_pm_difference(pm25, pm10):
@@ -287,3 +289,21 @@ def build_rainfall_features(weather_data, air_quality_data, location_data):
     )
 
     return features
+
+
+def align_rainfall_features(features):
+
+    feature_order = joblib.load("models/rainfall_feature_names.pkl")
+
+    df = pd.DataFrame([features])
+
+    for col in feature_order:
+        if col not in df.columns:
+            df[col] = 0
+
+    df = df[feature_order]
+
+    return df
+
+
+

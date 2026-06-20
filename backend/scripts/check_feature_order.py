@@ -20,12 +20,12 @@ features = build_rainfall_features(weather, air, location)
 
 live_features = list(features.keys())
 
-print(training_features[:20])
+for i, (train_feat, live_feat) \
+      in enumerate(zip(training_features, live_features)):
+    if train_feat != live_feat:
+        print("\nMismatch Found")
+        print("Position:", i)
+        print("Training :", train_feat)
+        print("Live     :", live_feat)
+        break
 
-print()
-
-print(live_features[:20])
-
-print()
-
-print(training_features == live_features)
