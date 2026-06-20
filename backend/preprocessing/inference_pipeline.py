@@ -237,50 +237,24 @@ def build_rainfall_features(weather_data, air_quality_data, location_data):
             )
 
     # ==========================
-    # ENGINEERED FEATURES
+    # DATETIME FEATURES
     # ==========================
 
-    features["temperature_gap"] = (
-        calculate_temperature_gap(
-            feels_like,
-            temperature
-            )
-            )
+    dt = create_datetime_features()
 
-    features["pm_difference"] = (
-        calculate_pm_difference(
-            pm25,
-            pm10
-            )
-            )
+    features.update(dt)
 
-    features["pollution_intensity"] = (
-        calculate_pollution_intensity(
-            pm25,
-            pm10
-            )
-            )
+    features.update(
+        create_day_period(
+            dt["hour"]
+        )
+        )
 
-    features["wind_humidity_interaction"] = (
-        calculate_wind_humidity_interaction(
-            wind_kph,
-            humidity
-            )
-            )
-
-    features["humidity_cloud_interaction"] = (
-        calculate_humidity_cloud_interaction(
-            humidity,
-            cloud
-            )
-            )
-
-    features["heatwave_index"] = (
-        calculate_heatwave_index(
-            temperature,
-            humidity
-            )
-            )
+    features.update(
+        create_season(
+            dt["month"]
+        )
+        )
 
     # ==========================
     # WIND DIRECTION
