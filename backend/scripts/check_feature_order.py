@@ -28,4 +28,3 @@ for i, (train_feat, live_feat) \
         print("Training :", train_feat)
         print("Live     :", live_feat)
         break
-
