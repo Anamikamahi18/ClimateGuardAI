@@ -116,3 +116,78 @@ def create_default_moon_features():
 def create_default_day_length():
 
     return {"day_length_minutes": 720}
+
+
+def build_rainfall_features(weather_data, air_quality_data, location_data):
+
+    features = {}
+
+    # ==========================
+    # BASIC WEATHER
+    # ==========================
+
+    temperature = weather_data["temperature_2m"]
+    humidity = weather_data["relative_humidity_2m"]
+    pressure = weather_data["pressure_msl"]
+    cloud = weather_data["cloud_cover"]
+
+    visibility_km = weather_data["visibility"] / 1000
+
+    wind_kph = weather_data["wind_speed_10m"]
+
+    wind_degree = weather_data["wind_direction_10m"]
+
+    feels_like = weather_data["apparent_temperature"]
+
+    # ==========================
+    # RAW FEATURES
+    # ==========================
+
+    features["latitude"] = location_data["latitude"]
+    features["longitude"] = location_data["longitude"]
+
+    features["temperature_celsius"] = temperature
+
+    features["wind_kph"] = wind_kph
+    features["wind_degree"] = wind_degree
+
+    features["pressure_mb"] = pressure
+
+    features["humidity"] = humidity
+    features["cloud"] = cloud
+
+    features["feels_like_celsius"] = feels_like
+
+    features["visibility_km"] = visibility_km
+
+    features["uv_index"] = weather_data["uv_index"]
+
+    features["gust_kph"] = wind_kph
+
+    # ==========================
+    # AIR QUALITY
+    # ==========================
+
+    pm25 = air_quality_data["pm2_5"]
+    pm10 = air_quality_data["pm10"]
+
+    features["air_quality_Carbon_Monoxide"] = \
+        air_quality_data["carbon_monoxide"]
+
+    features["air_quality_Ozone"] = air_quality_data["ozone"]
+
+    features["air_quality_Nitrogen_dioxide"] = \
+        air_quality_data["nitrogen_dioxide"]
+
+    features["air_quality_Sulphur_dioxide"] = \
+        air_quality_data["sulphur_dioxide"]
+
+    features["air_quality_PM2.5"] = pm25
+
+    features["air_quality_PM10"] = pm10
+
+    features["air_quality_us-epa-index"] = 3
+
+    features["air_quality_gb-defra-index"] = 6
+
+    return features
