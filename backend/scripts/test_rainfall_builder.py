@@ -13,7 +13,8 @@ air = get_air_quality_data(location["latitude"], location["longitude"])
 
 features = build_rainfall_features(weather, air, location)
 
-print(len(features))
+print("Feature Count:", len(features))
+
 
 for key, value in features.items():
     print(key, value)

@@ -190,4 +190,126 @@ def build_rainfall_features(weather_data, air_quality_data, location_data):
 
     features["air_quality_gb-defra-index"] = 6
 
+    # ==========================
+    # ENGINEERED FEATURES
+    # ==========================
+
+    features["temperature_gap"] = (
+        calculate_temperature_gap(
+            feels_like,
+            temperature
+            )
+            )
+
+    features["pm_difference"] = (
+        calculate_pm_difference(
+            pm25,
+            pm10
+            )
+            )
+
+    features["pollution_intensity"] = (
+        calculate_pollution_intensity(
+            pm25,
+            pm10
+            )
+            )
+
+    features["wind_humidity_interaction"] = (
+        calculate_wind_humidity_interaction(
+            wind_kph,
+            humidity
+            )
+            )
+
+    features["humidity_cloud_interaction"] = (
+        calculate_humidity_cloud_interaction(
+            humidity,
+            cloud
+            )
+            )
+
+    features["heatwave_index"] = (
+        calculate_heatwave_index(
+            temperature,
+            humidity
+            )
+            )
+
+    # ==========================
+    # ENGINEERED FEATURES
+    # ==========================
+
+    features["temperature_gap"] = (
+        calculate_temperature_gap(
+            feels_like,
+            temperature
+            )
+            )
+
+    features["pm_difference"] = (
+        calculate_pm_difference(
+            pm25,
+            pm10
+            )
+            )
+
+    features["pollution_intensity"] = (
+        calculate_pollution_intensity(
+            pm25,
+            pm10
+            )
+            )
+
+    features["wind_humidity_interaction"] = (
+        calculate_wind_humidity_interaction(
+            wind_kph,
+            humidity
+            )
+            )
+
+    features["humidity_cloud_interaction"] = (
+        calculate_humidity_cloud_interaction(
+            humidity,
+            cloud
+            )
+            )
+
+    features["heatwave_index"] = (
+        calculate_heatwave_index(
+            temperature,
+            humidity
+            )
+            )
+
+    # ==========================
+    # WIND DIRECTION
+    # ==========================
+
+    features.update(
+        create_wind_direction_features(
+            wind_degree
+            )
+            )
+
+    # ==========================
+    # DEFAULT FEATURES
+    # ==========================
+
+    features.update(
+        create_default_region_features()
+    )
+
+    features.update(
+        create_default_timezone_features()
+        )
+
+    features.update(
+        create_default_moon_features()
+        )
+
+    features.update(
+        create_default_day_length()
+    )
+
     return features
