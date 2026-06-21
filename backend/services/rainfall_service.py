@@ -1,5 +1,3 @@
-import joblib
-
 from backend.services.weather_service import (
     get_coordinates,
     get_weather_data,
@@ -11,9 +9,10 @@ from backend.preprocessing.inference_pipeline import (
     align_rainfall_features,
 )
 
-rainfall_model = joblib.load("models/xgboost_rainfall_model.pkl")
-
-rainfall_mapping = joblib.load("models/rainfall_class_mapping.pkl")
+from backend.services.model_loader import (
+    rainfall_model,
+    rainfall_mapping,
+)
 
 
 def predict_rainfall_risk(city: str):
@@ -32,4 +31,12 @@ def predict_rainfall_risk(city: str):
 
     risk = rainfall_mapping[prediction]
 
-    return {"city": city, "rainfall_risk": risk}
+    return {
+        "city": city,
+        "latitude": location["latitude"],
+        "longitude": location["longitude"],
+        "rainfall_risk": risk,
+        "temperature_celsius": weather["temperature_2m"],
+        "humidity": weather["relative_humidity_2m"],
+        "cloud_cover": weather["cloud_cover"],
+    }
