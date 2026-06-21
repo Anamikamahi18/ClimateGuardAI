@@ -1,9 +1,6 @@
 import pandas as pd
 
-from backend.services.model_loader import (
-    kmeans_model,
-    clustering_scaler
-)
+from backend.services.model_loader import kmeans_model, clustering_scaler
 
 CLUSTERING_FEATURES = [
     "temperature_celsius",
@@ -20,36 +17,38 @@ CLUSTERING_FEATURES = [
     "air_quality_Nitrogen_dioxide",
     "air_quality_Sulphur_dioxide",
     "day_length_minutes",
-    "temperature_gap"
+    "temperature_gap",
 ]
 
 CLUSTER_MAPPING = {
     0: "Moderate",
     1: "Flood-Prone",
     2: "Pollution-Prone",
-    3: "Extreme-Pollution"
+    3: "Extreme-Pollution",
 }
 
 
-def predict_climate_profile(feature_dict: dict):
+def predict_climate_profile(feature_dict):
 
-    X = pd.DataFrame(
-        [feature_dict],
-        columns=CLUSTERING_FEATURES
-    )
+    row = {}
+
+    for feature in CLUSTERING_FEATURES:
+        row[feature] = feature_dict.get(feature, 0)
+
+    X = pd.DataFrame([row])
+
+    print(X)
 
     X_scaled = clustering_scaler.transform(X)
 
-    cluster = int(
-        kmeans_model.predict(X_scaled)[0]
-    )
+    cluster = int(kmeans_model.predict(X_scaled)[0])
 
-    profile = CLUSTER_MAPPING.get(
-        cluster,
-        "Moderate"
+    print(
+        "Incoming Features:",
+        feature_dict.keys()
     )
 
     return {
         "climate_cluster": cluster,
-        "climate_profile": profile
+        "climate_profile": CLUSTER_MAPPING.get(cluster, "Moderate"),
     }
