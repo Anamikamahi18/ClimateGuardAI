@@ -1,4 +1,11 @@
-from backend.preprocessing.inference_pipeline import *
+from backend.preprocessing.inference_pipeline import (
+    calculate_pm_difference,
+    calculate_pollution_intensity,
+    calculate_wind_humidity_interaction,
+    calculate_humidity_cloud_interaction,
+    calculate_temperature_gap,
+    calculate_heatwave_index,
+)
 
 print(calculate_pm_difference(43.7, 51.7))
 
@@ -10,4 +17,4 @@ print(calculate_humidity_cloud_interaction(84, 99))
 
 print(calculate_temperature_gap(33.1, 27.6))
 
-print(calculate_heatwave_index(27.6, 84))
+print(calculate_heatwave_index(29.4, 7.2))

@@ -34,3 +34,7 @@ for city in cities:
     risk = encoder.inverse_transform([pred])[0]
 
     print(city, "->", risk)
+
+
+
+

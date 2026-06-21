@@ -23,8 +23,8 @@ def calculate_temperature_gap(feels_like, temperature):
     return feels_like - temperature
 
 
-def calculate_heatwave_index(temperature, humidity):
-    return temperature + ((humidity / 100) * temperature)
+def calculate_heatwave_index(temperature, uv_index):
+    return temperature * uv_index
 
 
 def create_datetime_features():
@@ -234,7 +234,7 @@ def build_rainfall_features(weather_data, air_quality_data, location_data):
     features["heatwave_index"] = (
         calculate_heatwave_index(
             temperature,
-            humidity
+            weather_data["uv_index"]
             )
             )
 
@@ -392,7 +392,7 @@ def build_heatwave_features(weather_data, air_quality_data, location_data):
     )
 
     features["heatwave_index"] = \
-        calculate_heatwave_index(temperature, humidity)
+        calculate_heatwave_index(temperature, weather_data["uv_index"])
 
     # =====================
     # DATETIME
