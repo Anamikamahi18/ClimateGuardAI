@@ -427,8 +427,12 @@ def align_heatwave_features(features):
 
     import joblib
     import pandas as pd
-
-    feature_order = joblib.load("models/heatwave_feature_names.pkl")
+    from pathlib import Path
+    BASE_DIR = Path(__file__).resolve().parents[2]
+    MODELS_DIR = BASE_DIR / "models"
+    feature_order = joblib.load(
+        MODELS_DIR / "heatwave_feature_names.pkl"
+    )
 
     df = pd.DataFrame([features])
 

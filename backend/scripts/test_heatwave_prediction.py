@@ -1,3 +1,5 @@
+import joblib
+
 from backend.services.weather_service import (
     get_coordinates,
     get_weather_data,
@@ -6,11 +8,16 @@ from backend.services.weather_service import (
 
 from backend.preprocessing.inference_pipeline import (
     build_heatwave_features,
+    align_heatwave_features,
 )
 
-print("=" * 50)
-print("HEATWAVE FEATURE BUILDER TEST")
-print("=" * 50)
+print("=" * 60)
+print("HEATWAVE PREDICTION TEST")
+print("=" * 60)
+
+encoder = joblib.load("models/heatwave_label_encoder.pkl")
+
+model = joblib.load("models/xgboost_heatwave_model.pkl")
 
 location = get_coordinates("Kochi")
 
@@ -20,16 +27,13 @@ air = get_air_quality_data(location["latitude"], location["longitude"])
 
 features = build_heatwave_features(weather, air, location)
 
-print()
+X = align_heatwave_features(features)
 
-print("Feature Count:")
-print(len(features))
+prediction = model.predict(X)[0]
 
-print()
-
-for key, value in features.items():
-    print(f"{key} : {value}")
+risk = encoder.inverse_transform([prediction])[0]
 
 print()
-
-print("Heatwave Feature Builder Passed")
+print("City : Kochi")
+print("Prediction :", prediction)
+print("Risk :", risk)

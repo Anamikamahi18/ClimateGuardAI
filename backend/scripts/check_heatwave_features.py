@@ -1,8 +1,6 @@
 import joblib
 
 features = joblib.load("models/heatwave_feature_names.pkl")
-
-print("Feature Count:", len(features))
-
-for i, feature in enumerate(features):
-    print(i, feature)
+for i, f in enumerate(features):
+    print(i, repr(f))
+features[-15:]
