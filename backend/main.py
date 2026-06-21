@@ -22,6 +22,8 @@ from backend.api.explainability import (
     router as explain_router
 )
 
+from backend.api.analysis import router as analysis_router
+
 app = FastAPI(
     title="ClimateGuard AI",
     version="1.0"
@@ -57,6 +59,12 @@ app.include_router(
     explain_router,
     prefix="/explainability",
     tags=["Explainability"]
+)
+
+app.include_router(
+    analysis_router,
+    prefix="/analysis",
+    tags=["Complete Analysis"],
 )
 
 
