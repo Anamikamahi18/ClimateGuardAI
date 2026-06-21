@@ -40,3 +40,5 @@ def predict_rainfall_risk(city: str):
         "humidity": weather["relative_humidity_2m"],
         "cloud_cover": weather["cloud_cover"],
     }
+
+

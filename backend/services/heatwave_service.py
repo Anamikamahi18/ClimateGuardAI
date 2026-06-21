@@ -40,3 +40,5 @@ def predict_heatwave(city: str):
         "humidity": weather["relative_humidity_2m"],
         "uv_index": weather["uv_index"],
     }
+
+
