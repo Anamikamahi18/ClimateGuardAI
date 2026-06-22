@@ -6,17 +6,29 @@ from backend.services.weather_service import (
     get_air_quality_data,
 )
 
-from backend.services.feature_engineering_service import build_features
+from backend.services.feature_engineering_service import (
+    build_features,
+)
 
-from backend.services.rainfall_service import predict_rainfall_risk
+from backend.services.rainfall_service import (
+    predict_rainfall_risk_from_data,
+)
 
-from backend.services.heatwave_service import predict_heatwave
+from backend.services.heatwave_service import (
+    predict_heatwave_from_data,
+)
 
-from backend.services.climate_profile_service import predict_climate_profile
+from backend.services.climate_profile_service import (
+    predict_climate_profile,
+)
 
-from backend.services.anomaly_service import predict_anomaly
+from backend.services.anomaly_service import (
+    predict_anomaly,
+)
 
-from backend.services.climate_service import calculate_climate_risk
+from backend.services.climate_service import (
+    calculate_climate_risk,
+)
 
 router = APIRouter()
 
@@ -24,24 +36,82 @@ router = APIRouter()
 @router.get("/{city}")
 def climate_risk(city: str):
 
+    # ==========================================
+    # LOCATION
+    # ==========================================
+
     location = get_coordinates(city)
 
     latitude = location["latitude"]
     longitude = location["longitude"]
 
-    weather = get_weather_data(latitude, longitude)
+    # ==========================================
+    # LIVE DATA
+    # ==========================================
 
-    air_quality = get_air_quality_data(latitude, longitude)
+    weather = get_weather_data(
+        latitude,
+        longitude,
+    )
 
-    features = build_features(weather, air_quality, location)
+    air_quality = get_air_quality_data(
+        latitude,
+        longitude,
+    )
 
-    rainfall_result = predict_rainfall_risk(city)
+    # ==========================================
+    # FEATURES
+    # ==========================================
 
-    heatwave_result = predict_heatwave(city)
+    features = build_features(
+        weather,
+        air_quality,
+        location,
+    )
 
-    profile_result = predict_climate_profile(features)
+    # ==========================================
+    # RAINFALL
+    # ==========================================
 
-    anomaly_result = predict_anomaly(features)
+    rainfall_result = (
+        predict_rainfall_risk_from_data(
+            weather,
+            air_quality,
+            location,
+        )
+    )
+
+    # ==========================================
+    # HEATWAVE
+    # ==========================================
+
+    heatwave_result = (
+        predict_heatwave_from_data(
+            weather,
+            air_quality,
+            location,
+        )
+    )
+
+    # ==========================================
+    # CLIMATE PROFILE
+    # ==========================================
+
+    profile_result = predict_climate_profile(
+        features
+    )
+
+    # ==========================================
+    # ANOMALY
+    # ==========================================
+
+    anomaly_result = predict_anomaly(
+        features
+    )
+
+    # ==========================================
+    # CLIMATE RISK ENGINE
+    # ==========================================
 
     risk_result = calculate_climate_risk(
         rainfall_result["rainfall_risk"],
@@ -50,10 +120,14 @@ def climate_risk(city: str):
         profile_result["climate_profile"],
     )
 
+    # ==========================================
+    # RESPONSE
+    # ==========================================
+
     return {
         "city": city,
-        "latitude": location["latitude"],
-        "longitude": location["longitude"],
+        "latitude": latitude,
+        "longitude": longitude,
         "rainfall_risk": rainfall_result["rainfall_risk"],
         "heatwave_risk": heatwave_result["heatwave_risk"],
         "climate_profile": profile_result["climate_profile"],
