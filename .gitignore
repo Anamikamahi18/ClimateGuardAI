@@ -19,9 +19,6 @@ logs/
 # VS Code
 .vscode/
 
-# Model Files
-models/*.pkl
-models/*.joblib
 
 # Dataset Copies
 datasets/processed/
