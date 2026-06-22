@@ -1,26 +1,39 @@
-import {
-  Link,
-} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Navbar() {
+
   return (
-    <nav className="navbar">
-      <Link to="/">
-        Dashboard
-      </Link>
 
-      <Link to="/explainability">
-        Explainability
-      </Link>
+    <div className="navbar">
 
-      <Link to="/climate-profile">
-        Climate Profile
-      </Link>
+      <div className="brand">
 
-      <Link to="/anomaly">
-        Anomaly Detection
-      </Link>
-    </nav>
+        🌍 ClimateGuard AI
+
+      </div>
+
+      <div className="nav-links">
+
+        <Link to="/">
+          Dashboard
+        </Link>
+
+        <Link to="/explainability">
+          Explainability
+        </Link>
+
+        <Link to="/climate-profile">
+          Climate Profile
+        </Link>
+
+        <Link to="/anomaly-detection">
+          Anomaly Detection
+        </Link>
+
+      </div>
+
+    </div>
+
   );
 }
 
