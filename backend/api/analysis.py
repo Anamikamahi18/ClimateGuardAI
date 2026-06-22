@@ -16,11 +16,11 @@ from backend.preprocessing.inference_pipeline import (
 )
 
 from backend.services.rainfall_service import (
-    predict_rainfall_risk_from_features,
+    predict_rainfall_risk,
 )
 
 from backend.services.heatwave_service import (
-    predict_heatwave_from_features,
+    predict_heatwave,
 )
 
 from backend.services.climate_profile_service import (
@@ -99,25 +99,14 @@ def complete_analysis(request: AnalysisRequest):
     # RAINFALL
     # ==========================================
 
-    rainfall_result = (
-        predict_rainfall_risk_from_features(
-            weather,
-            air,
-            location,
-            )
-            )
+    rainfall_result = predict_rainfall_risk(city)
 
     # ==========================================
     # HEATWAVE
     # ==========================================
 
-    heatwave_result = (
-        predict_heatwave_from_features(
-            weather,
-            air,
-            location,
-            )
-            )
+    heatwave_result = predict_heatwave(city)
+
     # ==========================================
     # CLIMATE PROFILE
     # ==========================================
