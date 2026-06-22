@@ -71,3 +71,10 @@ Weather observations collected across multiple Indian cities and regions.
 - moonset
 - moon_phase
 - moon_illumination
+
+Contains:
+Rows
+Columns
+Source
+Missing Values
+Target Variables

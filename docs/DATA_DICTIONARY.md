@@ -44,3 +44,16 @@
 | moonset                      | String    | Moonset time                               |
 | moon_phase                   | String    | Current moon phase                         |
 | moon_illumination            | Integer   | Percentage of moon illumination            |
+
+Every column explained.
+Example:
+temperature_celsius
+
+Type:
+float
+
+Description:
+Temperature in Celsius
+
+Range:
+-30.7 to 42.8
