@@ -117,8 +117,7 @@ def complete_analysis(request: AnalysisRequest):
             air,
             location,
             )
-            )   
- 
+            )
     # ==========================================
     # CLIMATE PROFILE
     # ==========================================
