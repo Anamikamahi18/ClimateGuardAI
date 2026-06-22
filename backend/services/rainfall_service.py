@@ -42,3 +42,15 @@ def predict_rainfall_risk(city: str):
     }
 
 
+def predict_rainfall_risk_from_features(features: dict):
+
+    X = align_rainfall_features(features)
+
+    prediction = rainfall_model.predict(X)[0]
+
+    risk = rainfall_mapping[prediction]
+
+    return {
+        "rainfall_risk": risk,
+        "prediction_code": int(prediction),
+    }

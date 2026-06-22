@@ -1,85 +1,186 @@
 import requests
 
+from fastapi import HTTPException
+
+from cachetools import TTLCache
+
+# ==========================================
+# CACHE CONFIGURATION
+# ==========================================
+
+weather_cache = TTLCache(maxsize=100, ttl=600)  # 10 minutes
+
+air_cache = TTLCache(maxsize=100, ttl=600)  # 10 minutes
+
+
+# ==========================================
+# GEOCODING
+# ==========================================
+
 
 def get_coordinates(city: str):
 
-    url = "https://geocoding-api.open-meteo.com/v1/search"
+    url = "https://geocoding-api.open-meteo.com/v1/search" \
+        f"?name={city}&count=1"
 
-    params = {"name": city, "count": 10, "language": "en", "format": "json"}
+    response = requests.get(url)
 
-    response = requests.get(url, params=params, timeout=30)
+    response.raise_for_status()
 
     data = response.json()
 
-    if "results" not in data:
-        raise ValueError(f"City not found: {city}")
+    if "results" not in data or len(data["results"]) == 0:
+        raise HTTPException(status_code=404, detail=f"City '{city}' not found")
 
-    for result in data["results"]:
+    result = data["results"][0]
 
-        country = result.get("country", "")
+    return {
+        "city": result["name"],
+        "latitude": result["latitude"],
+        "longitude": result["longitude"],
+        "country": result.get("country", ""),
+    }
 
-        if country.lower() == "india":
 
-            return {
-                "latitude": result["latitude"],
-                "longitude": result["longitude"],
-                "name": result["name"],
-                "country": country,
-            }
-
-    raise ValueError(f"No Indian city found for {city}")
+# ==========================================
+# WEATHER DATA
+# ==========================================
 
 
 def get_weather_data(latitude: float, longitude: float):
 
-    url = "https://api.open-meteo.com/v1/forecast"
+    cache_key = f"{latitude}_{longitude}"
 
-    params = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "current": [
-            "temperature_2m",
-            "relative_humidity_2m",
-            "apparent_temperature",
-            "pressure_msl",
-            "cloud_cover",
-            "visibility",
-            "wind_speed_10m",
-            "wind_direction_10m",
-            "uv_index",
-        ],
-    }
+    # ---------------------------
+    # CACHE HIT
+    # ---------------------------
 
-    response = requests.get(url, params=params, timeout=30)
+    if cache_key in weather_cache:
+        print(f"Weather Cache Hit: {cache_key}")
+        return weather_cache[cache_key]
+
+    url = (
+        "https://api.open-meteo.com/v1/forecast"
+        f"?latitude={latitude}"
+        f"&longitude={longitude}"
+        "&current=temperature_2m"
+        "&current=relative_humidity_2m"
+        "&current=apparent_temperature"
+        "&current=pressure_msl"
+        "&current=cloud_cover"
+        "&current=visibility"
+        "&current=wind_speed_10m"
+        "&current=wind_direction_10m"
+        "&current=uv_index"
+    )
+
+    response = requests.get(url, timeout=30)
+
+    # ---------------------------
+    # RATE LIMIT HANDLING
+    # ---------------------------
+
+    if response.status_code == 429:
+
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Weather API rate limit exceeded. "
+                "Please try again in a few minutes."
+            ),
+        )
 
     response.raise_for_status()
 
     data = response.json()
 
-    return data["current"]
+    current = data["current"]
+
+    weather_data = {
+        "temperature_2m": current["temperature_2m"],
+        "relative_humidity_2m": current["relative_humidity_2m"],
+        "apparent_temperature": current["apparent_temperature"],
+        "pressure_msl": current["pressure_msl"],
+        "cloud_cover": current["cloud_cover"],
+        "visibility": current["visibility"],
+        "wind_speed_10m": current["wind_speed_10m"],
+        "wind_direction_10m": current["wind_direction_10m"],
+        "uv_index": current["uv_index"],
+    }
+
+    # ---------------------------
+    # SAVE TO CACHE
+    # ---------------------------
+
+    weather_cache[cache_key] = weather_data
+
+    return weather_data
+
+
+# ==========================================
+# AIR QUALITY DATA
+# ==========================================
 
 
 def get_air_quality_data(latitude: float, longitude: float):
 
-    url = "https://air-quality-api.open-meteo.com/v1/air-quality"
+    cache_key = f"{latitude}_{longitude}"
 
-    params = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "current": [
-            "pm10",
-            "pm2_5",
-            "carbon_monoxide",
-            "nitrogen_dioxide",
-            "sulphur_dioxide",
-            "ozone",
-        ],
-    }
+    # ---------------------------
+    # CACHE HIT
+    # ---------------------------
 
-    response = requests.get(url, params=params, timeout=30)
+    if cache_key in air_cache:
+        print(f"Air Cache Hit: {cache_key}")
+        return air_cache[cache_key]
+
+    url = (
+        "https://air-quality-api.open-meteo.com/v1/air-quality"
+        f"?latitude={latitude}"
+        f"&longitude={longitude}"
+        "&current=pm10"
+        "&current=pm2_5"
+        "&current=carbon_monoxide"
+        "&current=nitrogen_dioxide"
+        "&current=sulphur_dioxide"
+        "&current=ozone"
+    )
+
+    response = requests.get(url, timeout=30)
+
+    # ---------------------------
+    # RATE LIMIT HANDLING
+    # ---------------------------
+
+    if response.status_code == 429:
+
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                "Air Quality API rate limit exceeded. "
+                "Please try again in a few minutes."
+            ),
+        )
 
     response.raise_for_status()
 
     data = response.json()
 
-    return data["current"]
+    current = data["current"]
+
+    air_data = {
+        "pm10": current["pm10"],
+        "pm2_5": current["pm2_5"],
+        "carbon_monoxide": current["carbon_monoxide"],
+        "nitrogen_dioxide": current["nitrogen_dioxide"],
+        "sulphur_dioxide": current["sulphur_dioxide"],
+        "ozone": current["ozone"],
+    }
+
+    # ---------------------------
+    # SAVE TO CACHE
+    # ---------------------------
+
+    air_cache[cache_key] = air_data
+
+    return air_data
