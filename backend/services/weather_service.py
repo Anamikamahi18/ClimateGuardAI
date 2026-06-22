@@ -120,7 +120,7 @@ def get_air_quality_data(latitude: float, longitude: float):
 
     try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError as e:        
+    except requests.exceptions.HTTPError as e:
         if response.status_code == 429:
             return {
                 "pm10": 20,
@@ -129,7 +129,7 @@ def get_air_quality_data(latitude: float, longitude: float):
                 "nitrogen_dioxide": 5,
                 "sulphur_dioxide": 2,
                 "ozone": 50,
-                }       
+            }
         raise e
 
     data = response.json()
