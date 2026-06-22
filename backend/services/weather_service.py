@@ -1,13 +1,35 @@
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+session = requests.Session()
+
+retry_strategy = Retry(
+    total=5,
+    backoff_factor=2,
+    status_forcelist=[429, 500, 502, 503, 504],
+)
+
+adapter = HTTPAdapter(max_retries=retry_strategy)
+
+session.mount("https://", adapter)
+session.mount("http://", adapter)
 
 
 def get_coordinates(city: str):
 
     url = "https://geocoding-api.open-meteo.com/v1/search"
 
-    params = {"name": city, "count": 10, "language": "en", "format": "json"}
+    params = {
+        "name": city,
+        "count": 10,
+        "language": "en",
+        "format": "json",
+    }
 
-    response = requests.get(url, params=params, timeout=30)
+    response = session.get(url, params=params, timeout=30)
+
+    response.raise_for_status()
 
     data = response.json()
 
@@ -50,7 +72,7 @@ def get_weather_data(latitude: float, longitude: float):
         ],
     }
 
-    response = requests.get(url, params=params, timeout=30)
+    response = session.get(url, params=params, timeout=30)
 
     response.raise_for_status()
 
@@ -76,7 +98,7 @@ def get_air_quality_data(latitude: float, longitude: float):
         ],
     }
 
-    response = requests.get(url, params=params, timeout=30)
+    response = session.get(url, params=params, timeout=30)
 
     response.raise_for_status()
 
