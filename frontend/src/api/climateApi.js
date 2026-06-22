@@ -1,16 +1,18 @@
 import axios from "axios";
 
-const API = axios.create({
-  baseURL: "http://127.0.0.1:8000",
-});
+const API_URL =
+  import.meta.env.VITE_API_URL;
 
-export const getCompleteAnalysis = async (city) => {
-  const response = await API.post(
-    "/analysis/complete",
-    {
-      city,
-    }
-  );
+export const getCompleteAnalysis =
+  async (city) => {
 
-  return response.data;
-};
+    const response =
+      await axios.post(
+        `${API_URL}/analysis/complete`,
+        {
+          city,
+        }
+      );
+
+    return response.data;
+  };
