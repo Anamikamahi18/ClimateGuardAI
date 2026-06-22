@@ -1,3 +1,4 @@
+import time
 import requests
 
 
@@ -50,13 +51,21 @@ def get_weather_data(latitude: float, longitude: float):
         ],
     }
 
-    response = requests.get(url, params=params, timeout=30)
+    for attempt in range(3):
 
-    response.raise_for_status()
+        response = requests.get(url, params=params, timeout=30)
 
-    data = response.json()
+        if response.status_code == 429:
 
-    return data["current"]
+            time.sleep(2)
+
+            continue
+
+        response.raise_for_status()
+
+        return response.json()["current"]
+
+    raise ValueError("Open-Meteo rate limit exceeded")
 
 
 def get_air_quality_data(latitude: float, longitude: float):
@@ -78,6 +87,10 @@ def get_air_quality_data(latitude: float, longitude: float):
 
     response = requests.get(url, params=params, timeout=30)
 
+    if response.status_code == 429:
+        raise ValueError(
+            "Weather service temporarily rate limited"
+            )
     response.raise_for_status()
 
     data = response.json()

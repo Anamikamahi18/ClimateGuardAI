@@ -9,5 +9,8 @@ router = APIRouter(prefix="/heatwave", tags=["Heatwave"])
 
 @router.get("/{city}")
 def heatwave_prediction(city: str):
+    try:
+        return predict_heatwave(city)
 
-    return predict_heatwave(city)
+    except ValueError as e:
+        return {"error": str(e)}
