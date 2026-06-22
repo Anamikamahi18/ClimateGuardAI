@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from backend.schemas.analysis import AnalysisRequest
 
@@ -45,158 +45,159 @@ router = APIRouter()
 
 @router.post("/complete")
 def complete_analysis(request: AnalysisRequest):
+    try:
+        city = request.city
 
-    city = request.city
+        # ==========================================
+        # LOCATION
+        # ==========================================
+        try:
+            location = get_coordinates(city)
+        except ValueError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"City not found: {city}",
+            )
 
-    # ==========================================
-    # LOCATION
-    # ==========================================
+        latitude = location["latitude"]
+        longitude = location["longitude"]
 
-    location = get_coordinates(city)
+        # ==========================================
+        # LIVE DATA (with fallback)
+        # ==========================================
+        try:
+            weather = get_weather_data(latitude, longitude)
+            air = get_air_quality_data(latitude, longitude)
+        except Exception as e:
+            print(f"⚠️ Error fetching live data: {str(e)}")
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Weather data service temporarily unavailable. "
+                    "Using fallback data."
+                ),
+            )
 
-    latitude = location["latitude"]
-    longitude = location["longitude"]
+        # ==========================================
+        # FEATURES
+        # ==========================================
+        try:
+            rainfall_features = build_rainfall_features(weather, air, location)
 
-    # ==========================================
-    # LIVE DATA
-    # ==========================================
+            heatwave_features = build_heatwave_features(weather, air, location)
 
-    weather = get_weather_data(
-        latitude,
-        longitude
-    )
+            rainfall_X = align_rainfall_features(rainfall_features)
 
-    air = get_air_quality_data(
-        latitude,
-        longitude
-    )
+            heatwave_X = align_heatwave_features(heatwave_features)
+        except Exception as e:
+            print(f"❌ Feature engineering error: {str(e)}")
+            raise HTTPException(
+                status_code=400, detail=f"Feature engineering failed: {str(e)}"
+            )
 
-    # ==========================================
-    # FEATURES
-    # ==========================================
+        # ==========================================
+        # RAINFALL
+        # ==========================================
+        try:
+            rainfall_result = predict_rainfall_risk(rainfall_X)
+        except Exception as e:
+            print(f"❌ Rainfall prediction error: {str(e)}")
+            rainfall_result = {
+                "prediction": "Unknown",
+                "confidence": 0,
+                "error": str(e),
+            }
 
-    rainfall_features = build_rainfall_features(
-        weather,
-        air,
-        location
-    )
+        # ==========================================
+        # HEATWAVE
+        # ==========================================
+        try:
+            heatwave_result = predict_heatwave(heatwave_X)
+        except Exception as e:
+            print(f"❌ Heatwave prediction error: {str(e)}")
+            heatwave_result = {
+                "prediction": "Unknown",
+                "confidence": 0,
+                "error": str(e),
+            }
 
-    heatwave_features = build_heatwave_features(
-        weather,
-        air,
-        location
-    )
+        # ==========================================
+        # CLIMATE PROFILE
+        # ==========================================
+        try:
+            climate_profile_result = predict_climate_profile(rainfall_features)
+        except Exception as e:
+            print(f"❌ Climate profile error: {str(e)}")
+            climate_profile_result = {
+                "climate_cluster": -1,
+                "climate_profile": "Unknown",
+            }
 
-    rainfall_X = align_rainfall_features(
-        rainfall_features
-    )
+        # ==========================================
+        # ANOMALY DETECTION
+        # ==========================================
+        try:
+            anomaly_result = predict_anomaly(rainfall_features)
+        except Exception as e:
+            print(f"❌ Anomaly detection error: {str(e)}")
+            anomaly_result = {"anomaly_status": "Unknown"}
 
-    heatwave_X = align_heatwave_features(
-        heatwave_features
-    )
+        # ==========================================
+        # CLIMATE RISK
+        # ==========================================
+        try:
+            climate_risk = calculate_climate_risk(
+                rainfall_result, heatwave_result, climate_profile_result
+            )
+        except Exception as e:
+            print(f"❌ Climate risk error: {str(e)}")
+            climate_risk = {"category": "Unknown", "score": 0}
 
-    # ==========================================
-    # RAINFALL
-    # ==========================================
+        # ==========================================
+        # EXPLAINABILITY
+        # ==========================================
+        try:
+            rainfall_explanation = explain_rainfall_prediction(
+                rainfall_features,
+                rainfall_result,
+            )
+            heatwave_explanation = explain_heatwave_prediction(
+                heatwave_features,
+                heatwave_result,
+            )
+        except Exception as e:
+            print(f"⚠️ Explainability error: {str(e)}")
+            rainfall_explanation = {"risk_drivers": []}
+            heatwave_explanation = {"risk_drivers": []}
 
-    rainfall_result = predict_rainfall_risk(city)
+        # ==========================================
+        # RESPONSE
+        # ==========================================
+        return {
+            "city": city,
+            "coordinates": {
+                "latitude": latitude,
+                "longitude": longitude,
+            },
+            "rainfall": rainfall_result,
+            "heatwave": heatwave_result,
+            "climate_risk": climate_risk,
+            "climate_profile": climate_profile_result.get(
+                "climate_profile",
+                "Unknown",
+            ),
+            "anomaly_status": anomaly_result.get("anomaly_status", "Unknown"),
+            "explanations": {
+                "rainfall": rainfall_explanation,
+                "heatwave": heatwave_explanation,
+            },
+        }
 
-    # ==========================================
-    # HEATWAVE
-    # ==========================================
-
-    heatwave_result = predict_heatwave(city)
-
-    # ==========================================
-    # CLIMATE PROFILE
-    # ==========================================
-
-    climate_profile = predict_climate_profile(
-        rainfall_features
-    )
-
-    # ==========================================
-    # ANOMALY
-    # ==========================================
-
-    anomaly_result = predict_anomaly(
-        rainfall_features
-    )
-
-    # ==========================================
-    # CLIMATE RISK
-    # ==========================================
-
-    risk_result = calculate_climate_risk(
-        rainfall_result["rainfall_risk"],
-        heatwave_result["heatwave_risk"],
-        anomaly_result["anomaly_status"],
-        climate_profile["climate_profile"],
-    )
-
-    # ==========================================
-    # SHAP
-    # ==========================================
-
-    rainfall_explanation = (
-        explain_rainfall_prediction(
-            rainfall_X
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Unexpected error in analysis: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Analysis failed: {str(e)}",
         )
-    )
-
-    heatwave_explanation = (
-        explain_heatwave_prediction(
-            heatwave_X
-        )
-    )
-
-    # ==========================================
-    # RESPONSE
-    # ==========================================
-
-    return {
-        "city": city,
-
-        "coordinates": {
-            "latitude": latitude,
-            "longitude": longitude,
-        },
-
-        "climate_profile":
-            climate_profile["climate_profile"],
-
-        "anomaly_status":
-            anomaly_result["anomaly_status"],
-
-        "rainfall": {
-            "prediction":
-                rainfall_explanation["prediction"],
-
-            "confidence":
-                rainfall_explanation["confidence"],
-        },
-
-        "heatwave": {
-            "prediction":
-                heatwave_explanation["prediction"],
-
-            "confidence":
-                heatwave_explanation["confidence"],
-        },
-
-        "climate_risk": {
-            "score":
-                risk_result["climate_risk_score"],
-
-            "category":
-                risk_result["climate_risk"],
-        },
-
-        "explanations": {
-            "rainfall":
-                rainfall_explanation,
-
-            "heatwave":
-                heatwave_explanation,
-        },
-    }

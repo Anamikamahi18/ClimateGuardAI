@@ -1,153 +1,93 @@
 import { useEffect, useState } from "react";
-
 import SearchBar from "../components/SearchBar";
 import RiskCard from "../components/RiskCard";
-
-import {
-  getCompleteAnalysis,
-} from "../api/climateApi";
+import { getCompleteAnalysis } from "../api/climateApi";
 
 function Dashboard() {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
-  const [loading, setLoading] =
-    useState(false);
-
-  const [data, setData] =
-    useState(null);
-
-  const fetchAnalysis = async (
-    city
-  ) => {
-
+  const fetchAnalysis = async (city) => {
     try {
-
       setLoading(true);
-
-      const result =
-        await getCompleteAnalysis(city);
-
+      setError(null);
+      const result = await getCompleteAnalysis(city);
       setData(result);
-
-    } catch (error) {
-
-      console.error(
-        "Analysis Error:",
-        error
-      );
-
-      alert(
-        "Unable to fetch climate analysis."
-      );
-
+    } catch (err) {
+      console.error("Analysis Error:", err);
+      setError(`Unable to fetch analysis for ${city}. Please check your backend.`);
     } finally {
-
       setLoading(false);
-
     }
   };
 
   useEffect(() => {
-
     fetchAnalysis("Kochi");
-
   }, []);
 
   return (
     <div className="page">
+      <h1>🌍 ClimateGuard AI Dashboard</h1>
 
-      <h1>
-        ClimateGuard AI Dashboard
-      </h1>
+      <SearchBar onSearch={fetchAnalysis} />
 
-      <SearchBar
-        onSearch={fetchAnalysis}
-      />
+      {error && (
+        <div className="error-box">
+          ⚠️ {error}
+        </div>
+      )}
 
       {loading && (
-        <h3>Loading...</h3>
+        <div className="loading">
+          ⏳ Loading climate analysis...
+        </div>
       )}
 
       {!loading && data && (
-
         <>
-
-          <h2>
-            {data.city}
-          </h2>
+          <h2>📍 {data.city}</h2>
 
           <div className="card-grid">
-
             <RiskCard
-              title="Rainfall Risk"
-              value={
-                data.rainfall.prediction
-              }
-              confidence={
-                data.rainfall.confidence
-              }
+              title="🌧️ Rainfall Risk"
+              value={data.rainfall?.prediction || "N/A"}
+              confidence={data.rainfall?.confidence || 0}
             />
 
             <RiskCard
-              title="Heatwave Risk"
-              value={
-                data.heatwave.prediction
-              }
-              confidence={
-                data.heatwave.confidence
-              }
+              title="🔥 Heatwave Risk"
+              value={data.heatwave?.prediction || "N/A"}
+              confidence={data.heatwave?.confidence || 0}
             />
 
             <RiskCard
-              title="Climate Risk"
-              value={
-                data.climate_risk.category
-              }
+              title="⚠️ Climate Risk"
+              value={data.climate_risk?.category || "N/A"}
             />
 
             <RiskCard
-              title="Climate Profile"
-              value={
-                data.climate_profile
-              }
+              title="🌐 Climate Profile"
+              value={data.climate_profile || "N/A"}
             />
 
             <RiskCard
-              title="Anomaly Status"
-              value={
-                data.anomaly_status
-              }
+              title="🔍 Anomaly Status"
+              value={data.anomaly_status || "N/A"}
             />
-
           </div>
 
           <div className="summary-box">
-
-            <h3>
-              Coordinates
-            </h3>
-
+            <h3>📌 Location Details</h3>
             <p>
-              Latitude:
-              {" "}
-              {
-                data.coordinates.latitude
-              }
+              <strong>Latitude:</strong> {data.coordinates?.latitude?.toFixed(4)}
             </p>
-
             <p>
-              Longitude:
-              {" "}
-              {
-                data.coordinates.longitude
-              }
+              <strong>Longitude:</strong> {data.coordinates?.longitude?.toFixed(4)}
             </p>
-
           </div>
-
         </>
-
       )}
-
     </div>
   );
 }
