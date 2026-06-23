@@ -1,75 +1,13 @@
-from functools import lru_cache
-
 import requests
 
-from cachetools import TTLCache
-from cachetools import cached
 
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
-
-# ==================================================
-# RETRY SESSION
-# ==================================================
-
-session = requests.Session()
-
-retry = Retry(
-    total=5,
-    backoff_factor=2,
-    status_forcelist=[
-        429,
-        500,
-        502,
-        503,
-        504,
-    ],
-)
-
-adapter = HTTPAdapter(max_retries=retry)
-
-session.mount("https://", adapter)
-
-
-# ==================================================
-# CACHE
-# ==================================================
-
-weather_cache = TTLCache(
-    maxsize=100,
-    ttl=300,
-)
-
-air_cache = TTLCache(
-    maxsize=100,
-    ttl=300,
-)
-
-
-# ==================================================
-# GEOCODING
-# ==================================================
-
-
-@lru_cache(maxsize=100)
 def get_coordinates(city: str):
 
     url = "https://geocoding-api.open-meteo.com/v1/search"
 
-    params = {
-        "name": city,
-        "count": 10,
-        "language": "en",
-        "format": "json",
-    }
+    params = {"name": city, "count": 10, "language": "en", "format": "json"}
 
-    response = session.get(
-        url,
-        params=params,
-        timeout=30,
-    )
-
-    response.raise_for_status()
+    response = requests.get(url, params=params, timeout=30)
 
     data = response.json()
 
@@ -78,10 +16,7 @@ def get_coordinates(city: str):
 
     for result in data["results"]:
 
-        country = result.get(
-            "country",
-            "",
-        )
+        country = result.get("country", "")
 
         if country.lower() == "india":
 
@@ -95,16 +30,7 @@ def get_coordinates(city: str):
     raise ValueError(f"No Indian city found for {city}")
 
 
-# ==================================================
-# WEATHER
-# ==================================================
-
-
-@cached(weather_cache)
-def get_weather_data(
-    latitude: float,
-    longitude: float,
-):
+def get_weather_data(latitude: float, longitude: float):
 
     url = "https://api.open-meteo.com/v1/forecast"
 
@@ -124,11 +50,7 @@ def get_weather_data(
         ],
     }
 
-    response = session.get(
-        url,
-        params=params,
-        timeout=30,
-    )
+    response = requests.get(url, params=params, timeout=30)
 
     response.raise_for_status()
 
@@ -137,16 +59,7 @@ def get_weather_data(
     return data["current"]
 
 
-# ==================================================
-# AIR QUALITY
-# ==================================================
-
-
-@cached(air_cache)
-def get_air_quality_data(
-    latitude: float,
-    longitude: float,
-):
+def get_air_quality_data(latitude: float, longitude: float):
 
     url = "https://air-quality-api.open-meteo.com/v1/air-quality"
 
@@ -163,11 +76,7 @@ def get_air_quality_data(
         ],
     }
 
-    response = session.get(
-        url,
-        params=params,
-        timeout=30,
-    )
+    response = requests.get(url, params=params, timeout=30)
 
     response.raise_for_status()
 
