@@ -15,21 +15,60 @@ from backend.services.model_loader import (
 )
 
 
-def predict_rainfall_risk(city: str):
+def predict_rainfall_risk(
+    city: str,
+    location: dict = None,
+    weather: dict = None,
+    air: dict = None,
+):
+    """
+    Supports:
+    1. Standalone endpoint calls
+    2. Shared data from complete analysis
+    """
 
-    location = get_coordinates(city)
+    # ==========================================
+    # FETCH ONLY IF NOT PROVIDED
+    # ==========================================
 
-    weather = get_weather_data(location["latitude"], location["longitude"])
+    if location is None:
+        location = get_coordinates(city)
 
-    air = get_air_quality_data(location["latitude"], location["longitude"])
+    if weather is None:
+        weather = get_weather_data(
+            location["latitude"],
+            location["longitude"],
+        )
 
-    features = build_rainfall_features(weather, air, location)
+    if air is None:
+        air = get_air_quality_data(
+            location["latitude"],
+            location["longitude"],
+        )
+
+    # ==========================================
+    # FEATURE ENGINEERING
+    # ==========================================
+
+    features = build_rainfall_features(
+        weather,
+        air,
+        location,
+    )
 
     X = align_rainfall_features(features)
+
+    # ==========================================
+    # PREDICTION
+    # ==========================================
 
     prediction = rainfall_model.predict(X)[0]
 
     risk = rainfall_mapping[prediction]
+
+    # ==========================================
+    # RESPONSE
+    # ==========================================
 
     return {
         "city": city,
@@ -40,5 +79,3 @@ def predict_rainfall_risk(city: str):
         "humidity": weather["relative_humidity_2m"],
         "cloud_cover": weather["cloud_cover"],
     }
-
-

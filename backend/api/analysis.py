@@ -58,17 +58,17 @@ def complete_analysis(request: AnalysisRequest):
     longitude = location["longitude"]
 
     # ==========================================
-    # LIVE DATA
+    # LIVE DATA (ONLY ONE API CALL EACH)
     # ==========================================
 
     weather = get_weather_data(
         latitude,
-        longitude
+        longitude,
     )
 
     air = get_air_quality_data(
         latitude,
-        longitude
+        longitude,
     )
 
     # ==========================================
@@ -78,50 +78,52 @@ def complete_analysis(request: AnalysisRequest):
     rainfall_features = build_rainfall_features(
         weather,
         air,
-        location
+        location,
     )
 
     heatwave_features = build_heatwave_features(
         weather,
         air,
-        location
+        location,
     )
 
-    rainfall_X = align_rainfall_features(
-        rainfall_features
-    )
+    rainfall_X = align_rainfall_features(rainfall_features)
 
-    heatwave_X = align_heatwave_features(
-        heatwave_features
-    )
+    heatwave_X = align_heatwave_features(heatwave_features)
 
     # ==========================================
     # RAINFALL
     # ==========================================
 
-    rainfall_result = predict_rainfall_risk(city)
+    rainfall_result = predict_rainfall_risk(
+        city=city,
+        location=location,
+        weather=weather,
+        air=air,
+    )
 
     # ==========================================
     # HEATWAVE
     # ==========================================
 
-    heatwave_result = predict_heatwave(city)
+    heatwave_result = predict_heatwave(
+        city=city,
+        location=location,
+        weather=weather,
+        air=air,
+    )
 
     # ==========================================
     # CLIMATE PROFILE
     # ==========================================
 
-    climate_profile = predict_climate_profile(
-        rainfall_features
-    )
+    climate_profile = predict_climate_profile(rainfall_features)
 
     # ==========================================
     # ANOMALY
     # ==========================================
 
-    anomaly_result = predict_anomaly(
-        rainfall_features
-    )
+    anomaly_result = predict_anomaly(rainfall_features)
 
     # ==========================================
     # CLIMATE RISK
@@ -138,17 +140,9 @@ def complete_analysis(request: AnalysisRequest):
     # SHAP
     # ==========================================
 
-    rainfall_explanation = (
-        explain_rainfall_prediction(
-            rainfall_X
-        )
-    )
+    rainfall_explanation = explain_rainfall_prediction(rainfall_X)
 
-    heatwave_explanation = (
-        explain_heatwave_prediction(
-            heatwave_X
-        )
-    )
+    heatwave_explanation = explain_heatwave_prediction(heatwave_X)
 
     # ==========================================
     # RESPONSE
@@ -156,47 +150,26 @@ def complete_analysis(request: AnalysisRequest):
 
     return {
         "city": city,
-
         "coordinates": {
             "latitude": latitude,
             "longitude": longitude,
         },
-
-        "climate_profile":
-            climate_profile["climate_profile"],
-
-        "anomaly_status":
-            anomaly_result["anomaly_status"],
-
+        "climate_profile": climate_profile["climate_profile"],
+        "anomaly_status": anomaly_result["anomaly_status"],
         "rainfall": {
-            "prediction":
-                rainfall_explanation["prediction"],
-
-            "confidence":
-                rainfall_explanation["confidence"],
+            "prediction": rainfall_explanation["prediction"],
+            "confidence": rainfall_explanation["confidence"],
         },
-
         "heatwave": {
-            "prediction":
-                heatwave_explanation["prediction"],
-
-            "confidence":
-                heatwave_explanation["confidence"],
+            "prediction": heatwave_explanation["prediction"],
+            "confidence": heatwave_explanation["confidence"],
         },
-
         "climate_risk": {
-            "score":
-                risk_result["climate_risk_score"],
-
-            "category":
-                risk_result["climate_risk"],
+            "score": risk_result["climate_risk_score"],
+            "category": risk_result["climate_risk"],
         },
-
         "explanations": {
-            "rainfall":
-                rainfall_explanation,
-
-            "heatwave":
-                heatwave_explanation,
+            "rainfall": rainfall_explanation,
+            "heatwave": heatwave_explanation,
         },
     }

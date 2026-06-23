@@ -15,21 +15,64 @@ from backend.preprocessing.inference_pipeline import (
 )
 
 
-def predict_heatwave(city: str):
+def predict_heatwave(
+    city: str,
+    location: dict = None,
+    weather: dict = None,
+    air: dict = None,
+):
+    """
+    Supports:
+    1. Standalone endpoint calls
+    2. Shared data from complete analysis
+    """
 
-    location = get_coordinates(city)
+    # ==========================================
+    # FETCH ONLY IF NOT PROVIDED
+    # ==========================================
 
-    weather = get_weather_data(location["latitude"], location["longitude"])
+    if location is None:
+        location = get_coordinates(city)
 
-    air = get_air_quality_data(location["latitude"], location["longitude"])
+    if weather is None:
+        weather = get_weather_data(
+            location["latitude"],
+            location["longitude"],
+        )
 
-    features = build_heatwave_features(weather, air, location)
+    if air is None:
+        air = get_air_quality_data(
+            location["latitude"],
+            location["longitude"],
+        )
 
-    X = align_heatwave_features(features)
+    # ==========================================
+    # FEATURE ENGINEERING
+    # ==========================================
+
+    features = build_heatwave_features(
+        weather,
+        air,
+        location,
+    )
+
+    X = align_heatwave_features(
+        features
+    )
+
+    # ==========================================
+    # PREDICTION
+    # ==========================================
 
     prediction = heatwave_model.predict(X)[0]
 
-    risk = heatwave_encoder.inverse_transform([prediction])[0]
+    risk = heatwave_encoder.inverse_transform(
+        [prediction]
+    )[0]
+
+    # ==========================================
+    # RESPONSE
+    # ==========================================
 
     return {
         "city": city,
@@ -40,5 +83,3 @@ def predict_heatwave(city: str):
         "humidity": weather["relative_humidity_2m"],
         "uv_index": weather["uv_index"],
     }
-
-

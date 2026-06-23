@@ -1,4 +1,46 @@
-import requests
+import time
+import requests_cache
+
+# ==================================================
+# CACHE
+# ==================================================
+
+session = requests_cache.CachedSession(".cache", expire_after=300)
+
+# ==================================================
+# REQUEST HELPER
+# ==================================================
+
+
+def safe_get(url, params):
+    """
+    Retries requests if Open-Meteo returns 429.
+    """
+
+    for attempt in range(5):
+
+        response = session.get(url, params=params, timeout=30)
+
+        if response.status_code == 429:
+
+            wait_time = 2**attempt
+
+            print("Rate limited by Open-Meteo.")
+
+            time.sleep(wait_time)
+
+            continue
+
+        response.raise_for_status()
+
+        return response.json()
+
+    raise Exception("Open-Meteo rate limit exceeded")
+
+
+# ==================================================
+# GEOCODING
+# ==================================================
 
 
 def get_coordinates(city: str):
@@ -7,9 +49,7 @@ def get_coordinates(city: str):
 
     params = {"name": city, "count": 10, "language": "en", "format": "json"}
 
-    response = requests.get(url, params=params, timeout=30)
-
-    data = response.json()
+    data = safe_get(url, params)
 
     if "results" not in data:
         raise ValueError(f"City not found: {city}")
@@ -28,6 +68,11 @@ def get_coordinates(city: str):
             }
 
     raise ValueError(f"No Indian city found for {city}")
+
+
+# ==================================================
+# WEATHER
+# ==================================================
 
 
 def get_weather_data(latitude: float, longitude: float):
@@ -50,13 +95,14 @@ def get_weather_data(latitude: float, longitude: float):
         ],
     }
 
-    response = requests.get(url, params=params, timeout=30)
-
-    response.raise_for_status()
-
-    data = response.json()
+    data = safe_get(url, params)
 
     return data["current"]
+
+
+# ==================================================
+# AIR QUALITY
+# ==================================================
 
 
 def get_air_quality_data(latitude: float, longitude: float):
@@ -76,10 +122,6 @@ def get_air_quality_data(latitude: float, longitude: float):
         ],
     }
 
-    response = requests.get(url, params=params, timeout=30)
-
-    response.raise_for_status()
-
-    data = response.json()
+    data = safe_get(url, params)
 
     return data["current"]
